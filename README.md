@@ -1,4 +1,6 @@
-## Api Food
+## Api Food BR
+
+#### API criada para projeto universitário de cardápio semanal 
 
 ### Tecnologias usadas:
  
