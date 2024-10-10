@@ -8,3 +8,22 @@
  - [x] Libs python - pyenv, poetry, taskipy, ruff, fixtures, coverage, factory-boy, freezegun, testcontainer
  - [x] Docker
  - [x] CI/DI
+
+
+### Para rodar o projeto
+
+#### Libs necessárias:
+
+- [x] pipx
+```pip install pipx```
+
+- [x] poetry
+```pipx install poetry```
+
+#### Instruções
+
+```cd fast_zero```
+```poetry install```
+
+##### Toda vez que entrar depois de dar o install, rodar esse comando:
+```poetry shell```
