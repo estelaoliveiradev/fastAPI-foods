@@ -1,4 +1,4 @@
-## Api Food BR
+## Api para estudo do FastAPI
 
 #### API criada para projeto universitário de cardápio semanal 
 
