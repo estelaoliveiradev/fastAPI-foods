@@ -9,9 +9,11 @@ from sqlalchemy.orm import Session
 from fast_zero.app import app
 from fast_zero.models import table_registry
 
+
 @pytest.fixture
 def client():
     return TestClient(app)
+
 
 @pytest.fixture
 def session():
@@ -26,7 +28,6 @@ def session():
 
 @contextmanager
 def _mock_db_time(*, model, time=datetime(2024, 1, 1)):
-
     def fake_time_handler(mapper, connection, target):
         if hasattr(target, 'created_at'):
             target.created_at = time
