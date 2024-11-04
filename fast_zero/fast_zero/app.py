@@ -7,7 +7,7 @@ from fast_zero.schemas.users import Message
 
 app = FastAPI(
     prefix='/teste',
-    title='Projeto FastAPI com SQLAlchemy',
+    title='API Comida - Rangos Week',
     description='API Univesp',
 )
 
