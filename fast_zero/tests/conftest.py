@@ -6,13 +6,13 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session
 
-from fast_zero.app import app
-from fast_zero.models import table_registry
+from fast_zero.models.models import table_registry
+from fast_zero.routes import users
 
 
 @pytest.fixture
 def client():
-    return TestClient(app)
+    return TestClient(users)
 
 
 @pytest.fixture

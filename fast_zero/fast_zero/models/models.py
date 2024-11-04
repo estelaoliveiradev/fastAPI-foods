@@ -22,3 +22,16 @@ class User:
     updated_at: Mapped[datetime] = mapped_column(
         init=False, server_default=func.now(), onupdate=func.now()
     )
+
+
+@table_registry.mapped_as_dataclass
+class RecipeModel:
+    __tablename__ = 'recipes'
+
+    id: Mapped[int] = mapped_column(init=False, primary_key=True)
+    nome_refeicao: Mapped[str]
+    nome_alimento: Mapped[str]
+    nome_categoria: Mapped[str]
+    quantidade: Mapped[str]
+    kcal: Mapped[int]
+    dia_semana: Mapped[str]
