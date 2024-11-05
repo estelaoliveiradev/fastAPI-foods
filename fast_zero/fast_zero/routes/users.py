@@ -1,7 +1,9 @@
 from http import HTTPStatus
-from sqlalchemy import create_engine, select
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, HTTPException, Depends
+
 from fast_zero.database.database import get_session
 from fast_zero.models.models import User
 from fast_zero.schemas.users import (
@@ -24,20 +26,14 @@ database = []  # Lista provisória para fins de estudo
     '/users/', status_code=HTTPStatus.CREATED, response_model=UserPublic
 )
 def create_user(user: UserSchema, session: Session = Depends(get_session)):
-
-
     db_user = session.scalar(
         select(User).where(
             (User.username == user.username) | (User.email == user.email)
-
-
         )
     )
 
     if db_user:
         if db_user.username == user.username:
-
-
             raise HTTPException(
                 status_code=HTTPStatus.BAD_REQUEST,
                 detail='Username already exists',
@@ -59,12 +55,12 @@ def create_user(user: UserSchema, session: Session = Depends(get_session)):
 
 
 @router.get('/users/', response_model=UserList)
-def read_users():
+def read_users(session: Session = Depends(get_session)):
     return {'users': database}
 
 
 @router.put('/users/{user_id}', response_model=UserPublic)
-def update_user(user_id: int, user: UserSchema):
+def update_user(user_id: int, user: UserSchema, session: Session = Depends(get_session)):
     if user_id > len(database) or user_id < 1:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail='User not found'
@@ -77,7 +73,7 @@ def update_user(user_id: int, user: UserSchema):
 
 
 @router.delete('/users/{user_id}', response_model=Message)
-def delete_user(user_id: int):
+def delete_user(user_id: int, session: Session = Depends(get_session)):
     if user_id > len(database) or user_id < 1:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail='User not found'

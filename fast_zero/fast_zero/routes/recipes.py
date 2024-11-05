@@ -1,6 +1,11 @@
 from http import HTTPStatus
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from fast_zero.database.database import get_session
+from fast_zero.models.models import RecipeModel
 
 from fast_zero.schemas.recipes import Recipe, RecipeList
 from fast_zero.schemas.users import Message
@@ -14,22 +19,43 @@ database = []
 
 
 @router.post(
-    '/recipes/', status_code=HTTPStatus.CREATED, response_model=Recipe
+    '/recipes/', status_code=HTTPStatus.CREATED, response_model=RecipeModel
 )
-def create_recipe(recipe: Recipe):
-    recipe_data = Recipe(**recipe.model_dump())
-    database.append(recipe_data)
+def create_recipe(recipe: Recipe, session: Session = Depends(get_session)):
+    db_recipe = session.scalar(
+        select(Recipe).where(
+            (Recipe.nome_refeicao == recipe.nome_refeicao) | (Recipe.nome_alimento == recipe.nome_alimento)
+    )
+    )
 
-    return recipe_data
+    if db_recipe:
+        if db_recipe.nome_refeicao == recipe.nome_refeicao:
+            raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST,
+                detail='nome_refeicao already exists',
+            )
+        elif db_recipe.nome_alimento == recipe.nome_alimento:
+            raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST,
+                detail='nome_alimento already exists',
+            )
 
+    db_recipe = Recipe(
+        nome_refeicao=recipe.nome_refeicao, password=recipe.password, nome_alimento=recipe.nome_alimento
+    )
+    session.add(db_recipe)
+    session.commit()
+    session.refresh(db_recipe)
+
+    return db_recipe
 
 @router.get('/recipes/', response_model=RecipeList)
-def read_recipes():
+def read_recipes(session: Session = Depends(get_session)):
     return {'recipes': database}
 
 
 @router.put('/recipes/{recipe_id}', response_model=Recipe)
-def update_recipe(recipe_id: int, recipe: Recipe):
+def update_recipe(recipe_id: int, recipe: Recipe, session: Session = Depends(get_session)):
     if recipe_id < 1 or recipe_id > len(database):
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail='Recipe not found'
@@ -45,7 +71,7 @@ def update_recipe(recipe_id: int, recipe: Recipe):
 
 
 @router.delete('/recipes/{recipe_id}', response_model=Message)
-def delete_recipe(recipe_id: int):
+def delete_recipe(recipe_id: int, session: Session = Depends(get_session)):
     if recipe_id < 1 or recipe_id > len(database):
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail='Recipe not found'
