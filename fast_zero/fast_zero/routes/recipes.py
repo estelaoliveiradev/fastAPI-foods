@@ -6,7 +6,6 @@ from sqlalchemy.orm import Session
 
 from fast_zero.database.database import get_session
 from fast_zero.models.models import RecipeModel
-
 from fast_zero.schemas.recipes import Recipe, RecipeList
 from fast_zero.schemas.users import Message
 
@@ -24,8 +23,9 @@ database = []
 def create_recipe(recipe: Recipe, session: Session = Depends(get_session)):
     db_recipe = session.scalar(
         select(Recipe).where(
-            (Recipe.nome_refeicao == recipe.nome_refeicao) | (Recipe.nome_alimento == recipe.nome_alimento)
-    )
+            (Recipe.nome_refeicao == recipe.nome_refeicao)
+            | (Recipe.nome_alimento == recipe.nome_alimento)
+        )
     )
 
     if db_recipe:
@@ -41,7 +41,9 @@ def create_recipe(recipe: Recipe, session: Session = Depends(get_session)):
             )
 
     db_recipe = Recipe(
-        nome_refeicao=recipe.nome_refeicao, password=recipe.password, nome_alimento=recipe.nome_alimento
+        nome_refeicao=recipe.nome_refeicao,
+        password=recipe.password,
+        nome_alimento=recipe.nome_alimento,
     )
     session.add(db_recipe)
     session.commit()
@@ -49,13 +51,19 @@ def create_recipe(recipe: Recipe, session: Session = Depends(get_session)):
 
     return db_recipe
 
+
 @router.get('/recipes/', response_model=RecipeList)
-def read_recipes(session: Session = Depends(get_session)):
-    return {'recipes': database}
+def read_recipes(
+    skip: int = 0, limit: int = 100, session: Session = Depends(get_session)
+):
+    recipes = session.scalars(select(Recipe).offset(skip).limit(limit)).all()
+    return {'recipes': recipes}
 
 
 @router.put('/recipes/{recipe_id}', response_model=Recipe)
-def update_recipe(recipe_id: int, recipe: Recipe, session: Session = Depends(get_session)):
+def update_recipe(
+    recipe_id: int, recipe: Recipe, session: Session = Depends(get_session)
+):
     if recipe_id < 1 or recipe_id > len(database):
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail='Recipe not found'

@@ -55,12 +55,17 @@ def create_user(user: UserSchema, session: Session = Depends(get_session)):
 
 
 @router.get('/users/', response_model=UserList)
-def read_users(session: Session = Depends(get_session)):
-    return {'users': database}
+def read_users(
+    skip: int = 0, limit: int = 100, session: Session = Depends(get_session)
+):
+    users = session.scalars(select(User).offset(skip).limit(limit)).all()
+    return {'users': users}
 
 
 @router.put('/users/{user_id}', response_model=UserPublic)
-def update_user(user_id: int, user: UserSchema, session: Session = Depends(get_session)):
+def update_user(
+    user_id: int, user: UserSchema, session: Session = Depends(get_session)
+):
     if user_id > len(database) or user_id < 1:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail='User not found'
