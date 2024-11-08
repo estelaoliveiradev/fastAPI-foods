@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from fast_zero.database.database import get_session
 from fast_zero.models.models import RecipeModel
-from fast_zero.schemas.recipes import Recipe, RecipeList
+from fast_zero.schemas.recipes import RecipeSchema, RecipeList
 from fast_zero.schemas.users import Message
 
 router = APIRouter(
@@ -20,30 +20,27 @@ database = []
 @router.post(
     '/recipes/', status_code=HTTPStatus.CREATED, response_model=RecipeModel
 )
-def create_recipe(recipe: Recipe, session: Session = Depends(get_session)):
+def create_recipe(recipe: RecipeSchema, session: Session = Depends(get_session)):
     db_recipe = session.scalar(
-        select(Recipe).where(
-            (Recipe.nome_refeicao == recipe.nome_refeicao)
-            | (Recipe.nome_alimento == recipe.nome_alimento)
+        select(RecipeModel).where(
+            (RecipeModel.nome_alimento == recipe.nome_alimento)
         )
     )
 
     if db_recipe:
-        if db_recipe.nome_refeicao == recipe.nome_refeicao:
-            raise HTTPException(
-                status_code=HTTPStatus.BAD_REQUEST,
-                detail='nome_refeicao already exists',
-            )
-        elif db_recipe.nome_alimento == recipe.nome_alimento:
+        if db_recipe.nome_alimento == recipe.nome_alimento:
             raise HTTPException(
                 status_code=HTTPStatus.BAD_REQUEST,
                 detail='nome_alimento already exists',
             )
 
-    db_recipe = Recipe(
+    db_recipe = RecipeModel(
         nome_refeicao=recipe.nome_refeicao,
-        password=recipe.password,
         nome_alimento=recipe.nome_alimento,
+        nome_categoria=recipe.nome_categoria,
+        quantidade=recipe.quantidade,
+        kcal=recipe.kcal,
+        dia_semana=recipe.dia_semana
     )
     session.add(db_recipe)
     session.commit()
@@ -56,35 +53,47 @@ def create_recipe(recipe: Recipe, session: Session = Depends(get_session)):
 def read_recipes(
     skip: int = 0, limit: int = 100, session: Session = Depends(get_session)
 ):
-    recipes = session.scalars(select(Recipe).offset(skip).limit(limit)).all()
+    recipes = session.scalars(select(RecipeModel).offset(skip).limit(limit)).all()
     return {'recipes': recipes}
 
 
-@router.put('/recipes/{recipe_id}', response_model=Recipe)
+@router.put('/recipes/{recipe_id}', response_model=RecipeSchema)
 def update_recipe(
-    recipe_id: int, recipe: Recipe, session: Session = Depends(get_session)
+    recipe_id: int, recipe: RecipeSchema, session: Session = Depends(get_session)
 ):
-    if recipe_id < 1 or recipe_id > len(database):
+    db_recipe = session.scalar(
+        select(RecipeModel).where(RecipeModel.id == recipe_id)
+    )
+    if not db_recipe:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='Recipe not found'
-        )
-
-    existing_recipe = database[recipe_id - 1]
-    updated_recipe_data = recipe.model_dump()
-
-    for key, value in updated_recipe_data.items():
-        setattr(existing_recipe, key, value)
-
-    return existing_recipe
+        status_code=HTTPStatus.NOT_FOUND, detail='Recipe not found'
+    )
+    db_recipe.nome_refeicao = recipe.nome_refeicao
+    db_recipe.nome_alimento = recipe.nome_alimento
+    db_recipe.nome_categoria = recipe.nome_categoria
+    db_recipe.quantidade = recipe.quantidade
+    db_recipe.kcal = recipe.kcal
+    db_recipe.dia_semana = recipe.dia
+    session.commit()
+    session.refresh(db_recipe)
+    
+    return db_recipe
 
 
 @router.delete('/recipes/{recipe_id}', response_model=Message)
 def delete_recipe(recipe_id: int, session: Session = Depends(get_session)):
-    if recipe_id < 1 or recipe_id > len(database):
+    
+    db_recipe =  select(
+        select(RecipeModel).where(RecipeModel.id == recipe_id)
+        
+    )
+    if not db_recipe:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='Recipe not found'
-        )
-
-    del database[recipe_id - 1]
-
-    return {'message': 'Recipe deleted successfully'}
+        status_code=HTTPStatus.NOT_FOUND, detail='Recipe not found'
+    )
+    
+    session.delete()
+    session.commit()
+    
+    return {'message': 'Recipe deleted'}
+    

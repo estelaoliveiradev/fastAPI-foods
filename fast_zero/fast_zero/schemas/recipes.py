@@ -1,7 +1,7 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
-class Recipe(BaseModel):
+class RecipeSchema(BaseModel):
     id: int
     nome_refeicao: str
     nome_alimento: str
@@ -9,12 +9,13 @@ class Recipe(BaseModel):
     quantidade: str
     kcal: int
     dia_semana: str
-    message: str
+    model_config = ConfigDict(from_attributes=True)
+
 
 
 class RecipeList(BaseModel):
-    users: list[Recipe]
+    recipes: list[RecipeSchema]
 
 
-class RecipeDB(Recipe):
+class RecipeDB(RecipeSchema):
     id: int
