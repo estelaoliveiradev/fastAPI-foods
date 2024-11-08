@@ -8,7 +8,6 @@ from fast_zero.database.database import get_session
 from fast_zero.models.models import User
 from fast_zero.schemas.users import (
     Message,
-    UserDB,
     UserList,
     UserPublic,
     UserSchema,
@@ -80,6 +79,7 @@ def update_user(
     session.refresh(db_user)
 
     return db_user
+
 
 @router.delete('/users/{user_id}', response_model=Message)
 def delete_user(user_id: int, session: Session = Depends(get_session)):

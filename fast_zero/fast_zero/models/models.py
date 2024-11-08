@@ -35,4 +35,3 @@ class RecipeModel:
     quantidade: Mapped[str]
     kcal: Mapped[int]
     dia_semana: Mapped[str]
-  

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from fast_zero.database.database import get_session
 from fast_zero.models.models import RecipeModel
-from fast_zero.schemas.recipes import RecipeSchema, RecipeList
+from fast_zero.schemas.recipes import RecipeList, RecipeSchema
 from fast_zero.schemas.users import Message
 
 router = APIRouter(
@@ -20,7 +20,8 @@ database = []
 @router.post(
     '/recipes/', status_code=HTTPStatus.CREATED, response_model=RecipeModel
 )
-def create_recipe(recipe: RecipeSchema, session: Session = Depends(get_session)):
+def create_recipe(
+    recipe: RecipeSchema, session: Session = Depends(get_session)):
     db_recipe = session.scalar(
         select(RecipeModel).where(
             (RecipeModel.nome_alimento == recipe.nome_alimento)
@@ -53,13 +54,16 @@ def create_recipe(recipe: RecipeSchema, session: Session = Depends(get_session))
 def read_recipes(
     skip: int = 0, limit: int = 100, session: Session = Depends(get_session)
 ):
-    recipes = session.scalars(select(RecipeModel).offset(skip).limit(limit)).all()
+    recipes = session.scalars(select
+        (RecipeModel).offset(skip).limit(limit)).all()
     return {'recipes': recipes}
 
 
 @router.put('/recipes/{recipe_id}', response_model=RecipeSchema)
 def update_recipe(
-    recipe_id: int, recipe: RecipeSchema, session: Session = Depends(get_session)
+    recipe_id: int,
+    recipe: RecipeSchema,
+    session: Session = Depends(get_session)
 ):
     db_recipe = session.scalar(
         select(RecipeModel).where(RecipeModel.id == recipe_id)
@@ -76,24 +80,23 @@ def update_recipe(
     db_recipe.dia_semana = recipe.dia
     session.commit()
     session.refresh(db_recipe)
-    
+
     return db_recipe
 
 
 @router.delete('/recipes/{recipe_id}', response_model=Message)
 def delete_recipe(recipe_id: int, session: Session = Depends(get_session)):
-    
-    db_recipe =  select(
+
+    db_recipe = select(
         select(RecipeModel).where(RecipeModel.id == recipe_id)
-        
+
     )
     if not db_recipe:
         raise HTTPException(
         status_code=HTTPStatus.NOT_FOUND, detail='Recipe not found'
     )
-    
+
     session.delete()
     session.commit()
-    
+
     return {'message': 'Recipe deleted'}
-    
