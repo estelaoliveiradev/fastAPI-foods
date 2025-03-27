@@ -1,4 +1,4 @@
-## Api Food BR
+## Api para estudo do FastAPI
 
 #### API criada para projeto universitário de cardápio semanal 
 
@@ -19,6 +19,8 @@
 
 - [x] poetry
 ```pipx install poetry```
+
+```pip install poetry-plugin-shell```
 
 #### Instruções
 
