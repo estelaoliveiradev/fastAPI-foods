@@ -20,6 +20,8 @@
 - [x] poetry
 ```pipx install poetry```
 
+```pip install poetry-plugin-shell```
+
 #### Instruções
 
 ```cd fast_zero```
